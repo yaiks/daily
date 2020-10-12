@@ -3,13 +3,11 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"net/url"
-	"regexp"
 	"strings"
 
 	"github.com/gocolly/colly/v2"
 	"github.com/manifoldco/promptui"
-	"github.com/ricardohan93/daily/countries"
+	"github.com/ricardohan93/daily/crawler"
 	"github.com/ricardohan93/daily/utils"
 	"github.com/spf13/cobra"
 )
@@ -30,31 +28,18 @@ func customValidation(cms *cobra.Command, args []string) error {
 	return nil
 }
 
-func createFileName(fullURL string) (host string) {
-	regx := regexp.MustCompile(`(www\.|\.com|\.br)`)
-	u, err := url.Parse(fullURL)
-	if err != nil {
-		panic(err)
-	}
-
-	host = u.Hostname()
-	host = regx.ReplaceAllString(host, "")
-
-	return host
-}
-
 func newsCommand(cmd *cobra.Command, args []string) {
-	userCountry := args[0]
+	countryInput := args[0]
 
-	var news []countries.News
+	var info []crawler.Information
 
 	c := colly.NewCollector()
-	country := countries.Country{C: c}
+	cwlr := crawler.Crawler{C: c}
 
-	m := countries.MapCommandCountry()
+	mapCrawlerFunction := crawler.MapCommandCountry("news")
 
-	if fn := m[userCountry]; fn != nil {
-		news = fn(&country)
+	if fn := mapCrawlerFunction[countryInput]; fn != nil {
+		info = fn(&cwlr)
 	}
 
 	templates := &promptui.SelectTemplates{
@@ -69,8 +54,8 @@ func newsCommand(cmd *cobra.Command, args []string) {
 	}
 
 	searcher := func(input string, index int) bool {
-		new := news[index]
-		title := strings.Replace(strings.ToLower(new.Title), " ", "", -1)
+		news := info[index]
+		title := strings.Replace(strings.ToLower(news.Title), " ", "", -1)
 		input = strings.Replace(strings.ToLower(input), " ", "", -1)
 
 		return strings.Contains(title, input)
@@ -78,7 +63,8 @@ func newsCommand(cmd *cobra.Command, args []string) {
 
 	prompt := promptui.Select{
 		Label:     "See the news for today",
-		Items:     news,
+		Items:     info,
+		HideHelp:  true,
 		Templates: templates,
 		Searcher:  searcher,
 	}
@@ -90,7 +76,7 @@ func newsCommand(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	utils.OpenBrowser(news[index].Href)
+	utils.OpenBrowser(info[index].Href)
 }
 
 // newsCmd represents the news command
