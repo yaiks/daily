@@ -8,7 +8,8 @@ import (
 
 	"github.com/gocolly/colly/v2"
 	"github.com/manifoldco/promptui"
-	"github.com/ricardohan93/daily/constants"
+	"github.com/ricardohan93/daily/countries"
+	"github.com/ricardohan93/daily/utils"
 	"github.com/spf13/cobra"
 )
 
@@ -21,14 +22,12 @@ func customValidation(cms *cobra.Command, args []string) error {
 		return errors.New("command *news* accept only one country. Type **daily list countries** to see the list of available values")
 	}
 
-	if _, ok := constants.Countries[args[0]]; !ok {
-		return errors.New("we don't support this country yet. Type **daily list countries** to see the list of available values. You are welcome to open a PR to add this country to our list")
-	}
+	// if _, ok := countries.Countries[args[0]]; !ok {
+	// 	return errors.New("we don't support this country yet. Type **daily list countries** to see the list of available values. You are welcome to open a PR to add this country to our list")
+	// }
 
 	return nil
 }
-
-var urls = []string{"https://www.globo.com", "https://www.folha.com.br"}
 
 func createFileName(fullURL string) (host string) {
 	regx := regexp.MustCompile(`(www\.|\.com|\.br)`)
@@ -44,46 +43,39 @@ func createFileName(fullURL string) (host string) {
 }
 
 func newsCommand(cmd *cobra.Command, args []string) {
-	// country := args[0]
+	userCountry := args[0]
+
+	var title []string
+	var href []string
 
 	c := colly.NewCollector()
+	country := countries.Country{C: c}
 
-	var items []string
+	m := countries.MapCommandCountry()
 
-	c.OnHTML(".hui-premium.hui-color-journalism", func(e *colly.HTMLElement) {
-		goquerySelection := e.DOM
-
-		element := goquerySelection.Find(" a")
-		title := element.Children().Text()
-		// link, _ := element.Attr("href")
-
-		// fmt.Println("TITLE - ", title)
-		// fmt.Println("LINK - ", link)
-
-		items = append(items, title)
-	})
-
-	c.Visit("https://www.globo.com")
+	if fn := m[userCountry]; fn != nil {
+		title, href = fn(&country)
+	}
 
 	prompt := promptui.Select{
 		Label: "See the news for today",
-		Items: items,
+		Items: title,
 	}
 
-	_, result, err := prompt.Run()
+	int, _, err := prompt.Run()
 
 	if err != nil {
 		fmt.Printf("Prompt failed %v\n", err)
 		return
 	}
 
-	fmt.Printf("You choose %q\n", result)
+	utils.OpenBrowser(href[int])
 }
 
 // newsCmd represents the news command
 var newsCmd = &cobra.Command{
 	Use:   "news",
-	Short: "Bringing relevant news for you",
+	Short: "displays news according to the country you choose",
 	Long:  `news is a daily subcommand to display relevant news for you`,
 	Args:  customValidation,
 	Run:   newsCommand,
