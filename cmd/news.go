@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net/url"
 	"regexp"
+	"strings"
 
 	"github.com/gocolly/colly/v2"
 	"github.com/manifoldco/promptui"
@@ -45,8 +46,7 @@ func createFileName(fullURL string) (host string) {
 func newsCommand(cmd *cobra.Command, args []string) {
 	userCountry := args[0]
 
-	var title []string
-	var href []string
+	var news []countries.News
 
 	c := colly.NewCollector()
 	country := countries.Country{C: c}
@@ -54,22 +54,43 @@ func newsCommand(cmd *cobra.Command, args []string) {
 	m := countries.MapCommandCountry()
 
 	if fn := m[userCountry]; fn != nil {
-		title, href = fn(&country)
+		news = fn(&country)
+	}
+
+	templates := &promptui.SelectTemplates{
+		Label:    "{{ .Title }}?",
+		Active:   "\U0001f449 {{ .Title | cyan }}",
+		Inactive: "  {{ .Title | white }}",
+		Selected: "\U0001f449 {{ .Title | cyan }}",
+		Details: `
+		--------- News ----------
+		{{ "Title:" | faint }}	{{ .Title }}
+		{{ "Domain:" | faint }}	{{ .Domain }}`,
+	}
+
+	searcher := func(input string, index int) bool {
+		new := news[index]
+		title := strings.Replace(strings.ToLower(new.Title), " ", "", -1)
+		input = strings.Replace(strings.ToLower(input), " ", "", -1)
+
+		return strings.Contains(title, input)
 	}
 
 	prompt := promptui.Select{
-		Label: "See the news for today",
-		Items: title,
+		Label:     "See the news for today",
+		Items:     news,
+		Templates: templates,
+		Searcher:  searcher,
 	}
 
-	int, _, err := prompt.Run()
+	index, _, err := prompt.Run()
 
 	if err != nil {
 		fmt.Printf("Prompt failed %v\n", err)
 		return
 	}
 
-	utils.OpenBrowser(href[int])
+	utils.OpenBrowser(news[index].Href)
 }
 
 // newsCmd represents the news command

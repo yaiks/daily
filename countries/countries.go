@@ -10,34 +10,38 @@ type Country struct {
 }
 
 // News type
-// type News struct {
-// 	title string
-// 	href  string
-// }
+type News struct {
+	Title  string
+	Href   string
+	Domain string
+}
 
 // HandleBrazil is a method from Country type
-func (country Country) HandleBrazil() (title []string, href []string) {
+func (country Country) HandleBrazil() (news []News) {
 	link := "https://www.globo.com"
 
 	country.C.OnHTML(".hui-premium.hui-color-journalism", func(e *colly.HTMLElement) {
 		goquerySelection := e.DOM
 
 		element := goquerySelection.Find(" a")
-		crawlerHref, _ := element.Attr("href")
-		crawlerTitle := element.Children().Text()
+		href, _ := element.Attr("href")
+		title := element.Children().Text()
 
-		title = append(title, crawlerTitle)
-		href = append(href, crawlerHref)
+		news = append(news, News{
+			Title:  title,
+			Href:   href,
+			Domain: "globo",
+		})
 	})
 
 	country.C.Visit(link)
 
-	return title, href
+	return news
 }
 
 // MapCommandCountry maps a country to a function
-func MapCommandCountry() map[string]func(*Country) (title []string, href []string) {
-	m := map[string]func(*Country) (title []string, href []string){
+func MapCommandCountry() map[string]func(*Country) (news []News) {
+	m := map[string]func(*Country) (news []News){
 		"bra": (*Country).HandleBrazil,
 	}
 
