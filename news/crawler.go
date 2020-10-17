@@ -1,4 +1,4 @@
-package crawler
+package news
 
 import (
 	"github.com/gocolly/colly/v2"
@@ -12,10 +12,11 @@ type Information struct {
 }
 
 // HandleBrazilNews is a method from Crawler type
-func (crawler Crawler) HandleBrazilNews() (info []Information) {
-	link := "https://www.globo.com"
+func HandleBrazilNews() (info []Information) {
+	globoCollector := colly.NewCollector()
+	// uolCollector := colly.NewCollector()
 
-	crawler.C.OnHTML(".hui-premium.hui-color-journalism", func(e *colly.HTMLElement) {
+	globoCollector.OnHTML(".hui-premium.hui-color-journalism", func(e *colly.HTMLElement) {
 		goquerySelection := e.DOM
 
 		element := goquerySelection.Find(" a")
@@ -29,7 +30,7 @@ func (crawler Crawler) HandleBrazilNews() (info []Information) {
 		})
 	})
 
-	crawler.C.Visit(link)
+	globoCollector.Visit("https://www.globo.com")
 
 	return info
 }

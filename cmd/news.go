@@ -3,14 +3,15 @@ package cmd
 import (
 	"errors"
 	"fmt"
-	"strings"
 
-	"github.com/gocolly/colly/v2"
-	"github.com/manifoldco/promptui"
-	"github.com/ricardohan93/daily/crawler"
+	"github.com/ricardohan93/daily/news"
 	"github.com/ricardohan93/daily/utils"
 	"github.com/spf13/cobra"
 )
+
+var countries = map[string]string{
+	"bra": "Brazil",
+}
 
 func customValidation(cms *cobra.Command, args []string) error {
 	if len(args) < 1 {
@@ -21,9 +22,9 @@ func customValidation(cms *cobra.Command, args []string) error {
 		return errors.New("command *news* accept only one country. Type **daily list countries** to see the list of available values")
 	}
 
-	// if _, ok := countries.Countries[args[0]]; !ok {
-	// 	return errors.New("we don't support this country yet. Type **daily list countries** to see the list of available values. You are welcome to open a PR to add this country to our list")
-	// }
+	if _, ok := countries[args[0]]; !ok {
+		return errors.New("we don't support this country yet. Type **daily list countries** to see the list of available values. You are welcome to open a PR to add this country to our list")
+	}
 
 	return nil
 }
@@ -31,45 +32,15 @@ func customValidation(cms *cobra.Command, args []string) error {
 func newsCommand(cmd *cobra.Command, args []string) {
 	countryInput := args[0]
 
-	var info []crawler.Information
+	var info []news.Information
 
-	c := colly.NewCollector()
-	cwlr := crawler.Crawler{C: c}
-
-	mapCrawlerFunction := crawler.MapCommandCountry("news")
+	mapCrawlerFunction := news.MapCommandCountry("news")
 
 	if fn := mapCrawlerFunction[countryInput]; fn != nil {
-		info = fn(&cwlr)
+		info = fn()
 	}
 
-	templates := &promptui.SelectTemplates{
-		Label:    "{{ .Title }}?",
-		Active:   "\U0001f449 {{ .Title | cyan }}",
-		Inactive: "  {{ .Title | white }}",
-		Selected: "\U0001f449 {{ .Title | cyan }}",
-		Details: `
-		--------- News ----------
-		{{ "Title:" | faint }}	{{ .Title }}
-		{{ "Domain:" | faint }}	{{ .Domain }}`,
-	}
-
-	searcher := func(input string, index int) bool {
-		news := info[index]
-		title := strings.Replace(strings.ToLower(news.Title), " ", "", -1)
-		input = strings.Replace(strings.ToLower(input), " ", "", -1)
-
-		return strings.Contains(title, input)
-	}
-
-	prompt := promptui.Select{
-		Label:     "See the news for today",
-		Items:     info,
-		HideHelp:  true,
-		Templates: templates,
-		Searcher:  searcher,
-	}
-
-	index, _, err := prompt.Run()
+	index, _, err := news.HandleNewsPrompt(info)
 
 	if err != nil {
 		fmt.Printf("Prompt failed %v\n", err)
