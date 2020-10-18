@@ -14,7 +14,7 @@ type Information struct {
 // HandleBrazilNews is a method from Crawler type
 func HandleBrazilNews() (info []Information) {
 	globoCollector := colly.NewCollector()
-	// uolCollector := colly.NewCollector()
+	uolCollector := colly.NewCollector()
 
 	globoCollector.OnHTML(".hui-premium.hui-color-journalism", func(e *colly.HTMLElement) {
 		goquerySelection := e.DOM
@@ -30,7 +30,30 @@ func HandleBrazilNews() (info []Information) {
 		})
 	})
 
+	uolCollector.OnHTML("a.manchete-editorial", func(e *colly.HTMLElement) {
+		href := e.Attr("href")
+		title := e.ChildText("h1")
+
+		info = append(info, Information{
+			Title:  title,
+			Href:   href,
+			Domain: "uol",
+		})
+	})
+
+	uolCollector.OnHTML("div.submanchete-destaque", func(e *colly.HTMLElement) {
+		href := e.ChildAttr("a", "href")
+		title := e.ChildText("h2")
+
+		info = append(info, Information{
+			Title:  title,
+			Href:   href,
+			Domain: "uol",
+		})
+	})
+
 	globoCollector.Visit("https://www.globo.com")
+	uolCollector.Visit("https://www.uol.com.br/")
 
 	return info
 }
