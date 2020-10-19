@@ -11,6 +11,7 @@ import (
 
 var countries = map[string]string{
 	"bra": "Brazil",
+	"usa": "United States of America",
 }
 
 func customValidation(cms *cobra.Command, args []string) error {
