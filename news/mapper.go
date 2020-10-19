@@ -5,6 +5,7 @@ func MapCommandCountry(subject string) map[string]func() (info []Information) {
 	if subject == "news" {
 		m := map[string]func() (info []Information){
 			"bra": HandleBrazilNews,
+			"usa": HandleUSANews,
 		}
 
 		return m
