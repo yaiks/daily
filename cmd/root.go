@@ -18,7 +18,13 @@ var rootCmd = &cobra.Command{
 	Short: "Bringing relevant information for you",
 	Long:  `Daily is a program to keep yourself informed without leaving your terminal`,
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Welcome to daily!")
+		countries, _ := cmd.Flags().GetBool("countries")
+
+		if countries {
+			fmt.Println("bra --> Brazil\nusa --> United States of America")
+		} else {
+			fmt.Println("Welcome to daily!\nCheck our supported commands:\n\nnews {{ country prefix }}    see the news for a specific country")
+		}
 	},
 }
 
@@ -33,16 +39,8 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.daily.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
-	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
+	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.daily.yaml)")
+	rootCmd.Flags().BoolP("countries", "c", false, "List of available countries")
 }
 
 // initConfig reads in config file and ENV variables if set.

@@ -16,15 +16,15 @@ var countries = map[string]string{
 
 func customValidation(cms *cobra.Command, args []string) error {
 	if len(args) < 1 {
-		return errors.New("require a country. Type **daily list countries** to see the list of available values")
+		return errors.New("require a country. Type **daily -c** to see the list of available values")
 	}
 
 	if len(args) > 1 {
-		return errors.New("command *news* accept only one country. Type **daily list countries** to see the list of available values")
+		return errors.New("command *news* accept only one country. Type **daily -c** to see the list of available values")
 	}
 
 	if _, ok := countries[args[0]]; !ok {
-		return errors.New("we don't support this country yet. Type **daily list countries** to see the list of available values. You are welcome to open a PR to add this country to our list")
+		return errors.New("we don't support this country yet. Type **daily -c** to see the list of available values. You are welcome to open a PR to add this country to our list")
 	}
 
 	return nil
