@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/ricardohan93/daily/constants"
+	"github.com/ricardohan93/daily/utils"
 	"github.com/spf13/cobra"
 
 	homedir "github.com/mitchellh/go-homedir"
@@ -18,12 +20,16 @@ var rootCmd = &cobra.Command{
 	Short: "Bringing relevant information for you",
 	Long:  `Daily is a program to keep yourself informed without leaving your terminal`,
 	Run: func(cmd *cobra.Command, args []string) {
-		countries, _ := cmd.Flags().GetBool("countries")
+		cFlag, _ := cmd.Flags().GetBool("countries")
 
-		if countries {
-			fmt.Println("bra --> Brazil\nusa --> United States of America")
-		} else {
-			fmt.Println("Welcome to daily!\nCheck our supported commands:\n\nnews {{ country prefix }}    see the news for a specific country")
+		if cFlag {
+			utils.PrintTable(constants.Countries)
+			os.Exit(0)
+		}
+
+		if len(args) == 0 {
+			cmd.Help()
+			os.Exit(0)
 		}
 	},
 }
@@ -39,7 +45,6 @@ func Execute() {
 
 func init() {
 	cobra.OnInitialize(initConfig)
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.daily.yaml)")
 	rootCmd.Flags().BoolP("countries", "c", false, "List of available countries")
 }
 

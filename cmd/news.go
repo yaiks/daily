@@ -1,34 +1,12 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 
 	"github.com/ricardohan93/daily/news"
 	"github.com/ricardohan93/daily/utils"
 	"github.com/spf13/cobra"
 )
-
-var countries = map[string]string{
-	"bra": "Brazil",
-	"usa": "United States of America",
-}
-
-func customValidation(cms *cobra.Command, args []string) error {
-	if len(args) < 1 {
-		return errors.New("require a country. Type **daily -c** to see the list of available values")
-	}
-
-	if len(args) > 1 {
-		return errors.New("command *news* accept only one country. Type **daily -c** to see the list of available values")
-	}
-
-	if _, ok := countries[args[0]]; !ok {
-		return errors.New("we don't support this country yet. Type **daily -c** to see the list of available values. You are welcome to open a PR to add this country to our list")
-	}
-
-	return nil
-}
 
 func newsCommand(cmd *cobra.Command, args []string) {
 	countryInput := args[0]
@@ -53,10 +31,10 @@ func newsCommand(cmd *cobra.Command, args []string) {
 
 // newsCmd represents the news command
 var newsCmd = &cobra.Command{
-	Use:   "news",
+	Use:   "news <country>",
 	Short: "displays news according to the country you choose",
 	Long:  `news is a daily subcommand to display relevant news for you`,
-	Args:  customValidation,
+	Args:  cobra.ExactArgs(1),
 	Run:   newsCommand,
 }
 
