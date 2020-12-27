@@ -1,0 +1,6 @@
+brews:
+  - tap:
+      owner: ricardohan93
+      name: daily
+    description: CLI application to get news from your terminal.
+    homepage: https://github.com/ricardohan93/daily
